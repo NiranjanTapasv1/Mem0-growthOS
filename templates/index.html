@@ -1,0 +1,3141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mem0 GrowthOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080f;
+      --surface: #111118;
+      --surface-2: #151520;
+      --border: #1e1e2e;
+      --border-2: #2a2a3c;
+      --blue: #2563eb;
+      --blue-2: #1d4ed8;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --white: #f8fafc;
+      --gray: #94a3b8;
+      --gray-2: #64748b;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+      --sidebar-width: 220px;
+      --drawer-width: 400px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(37, 99, 235, 0.18), transparent 32%),
+        radial-gradient(circle at 75% 12%, rgba(16, 185, 129, 0.08), transparent 22%),
+        var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button, select, input, textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: block;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, rgba(17, 17, 24, 0.98), rgba(10, 10, 15, 0.98));
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 22px 14px 16px;
+      z-index: 30;
+    }
+
+    .brand {
+      padding: 10px 10px 18px;
+      border-bottom: 1px solid rgba(30, 30, 46, 0.75);
+      margin-bottom: 14px;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    .brand-subtitle {
+      margin: 6px 0 0;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+      padding: 2px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      cursor: pointer;
+      transition: 180ms ease;
+      text-align: left;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.04);
+      color: var(--white);
+    }
+
+    .nav-item.active {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--white);
+      border-color: rgba(37, 99, 235, 0.28);
+      box-shadow: inset 0 2px 0 var(--blue);
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      color: inherit;
+      opacity: 0.92;
+    }
+
+    .nav-label {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--gray);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px 10px 6px;
+      border-top: 1px solid rgba(30, 30, 46, 0.75);
+      color: var(--gray-2);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: 100%;
+      padding: 18px 28px;
+      background: rgba(8, 8, 15, 0.86);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-left h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .topbar-left p {
+      margin: 5px 0 0;
+      color: var(--gray);
+      font-size: 12px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--gray);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.55);
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.22), rgba(37, 99, 235, 0.08));
+      color: var(--white);
+      border: 1px solid rgba(37, 99, 235, 0.28);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .icon-btn,
+    .primary-btn,
+    .secondary-btn,
+    .ghost-btn,
+    .tab-btn,
+    .filter-select,
+    .toggle-btn {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: 180ms ease;
+    }
+
+    .icon-btn,
+    .secondary-btn,
+    .ghost-btn,
+    .tab-btn,
+    .toggle-btn {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    .icon-btn:hover,
+    .secondary-btn:hover,
+    .ghost-btn:hover,
+    .tab-btn:hover,
+    .toggle-btn:hover,
+    .filter-select:hover {
+      border-color: rgba(37, 99, 235, 0.35);
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .primary-btn {
+      background: linear-gradient(180deg, #3b82f6, var(--blue));
+      border-color: rgba(59, 130, 246, 0.5);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 12px 34px rgba(37, 99, 235, 0.25);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 38px rgba(37, 99, 235, 0.3);
+    }
+
+    .primary-btn:disabled,
+    .secondary-btn:disabled,
+    .ghost-btn:disabled,
+    .toggle-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .workspace {
+      width: 100%;
+      padding: 26px 28px 34px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .module {
+      display: none;
+      animation: fadeIn 260ms ease;
+    }
+
+    .module.active {
+      display: block;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(17, 17, 24, 0.98), rgba(14, 14, 22, 0.98));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      padding: 22px 22px 0;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-subtitle {
+      margin: 8px 0 0;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .filter-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 18px 22px 0;
+    }
+
+    .filter-select,
+    .mini-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--white);
+      padding: 11px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .filter-select option,
+    .mini-input::placeholder {
+      color: var(--gray);
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 18px 22px 0;
+    }
+
+    .stats-row.hidden,
+    .pre-scan-state.hidden,
+    .module-empty.hidden {
+      display: none !important;
+    }
+
+    .stat-card {
+      padding: 14px 15px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(30, 30, 46, 0.9);
+    }
+
+    .stat-label {
+      color: var(--gray);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 9px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .stat-note {
+      margin-top: 4px;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .feed {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px 22px 22px;
+    }
+
+    .signal-card,
+    .content-card,
+    .composer-card,
+    .insight-card,
+    .metric-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-2);
+      border-radius: 20px;
+      transition: 180ms ease;
+    }
+
+    .signal-card:hover,
+    .content-card:hover,
+    .composer-card:hover,
+    .insight-card:hover {
+      border-color: rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .signal-card {
+      position: relative;
+      overflow: hidden;
+      padding: 16px 16px 15px;
+      transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+      cursor: pointer;
+    }
+
+    .signal-card:focus-visible {
+      outline: 2px solid rgba(37, 99, 235, 0.45);
+      outline-offset: 2px;
+    }
+
+    .signal-card.urgent {
+      box-shadow: inset 3px 0 0 rgba(239, 68, 68, 0.8), 0 0 0 1px rgba(239, 68, 68, 0.18);
+    }
+
+    .signal-card::after {
+      content: attr(data-number);
+      position: absolute;
+      right: 12px;
+      bottom: 3px;
+      font-size: 54px;
+      font-weight: 800;
+      color: rgba(148, 163, 184, 0.08);
+      letter-spacing: -0.08em;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .signal-top,
+    .row-between,
+    .card-actions,
+    .composer-tabs,
+    .content-toolbar,
+    .metric-header,
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge.source-reddit { background: rgba(249, 115, 22, 0.12); color: #fdba74; border-color: rgba(249, 115, 22, 0.25); }
+    .badge.source-github { background: rgba(148, 163, 184, 0.1); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.2); }
+    .badge.source-stackoverflow { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border-color: rgba(245, 158, 11, 0.24); }
+    .badge.source-x { background: rgba(37, 99, 235, 0.12); color: #93c5fd; border-color: rgba(37, 99, 235, 0.26); }
+    .badge.source-other { background: rgba(100, 116, 139, 0.12); color: #cbd5e1; border-color: rgba(100, 116, 139, 0.2); }
+    .badge.urgent { background: rgba(239, 68, 68, 0.14); color: #fca5a5; border-color: rgba(239, 68, 68, 0.28); font-size: 12px; box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18), 0 0 16px rgba(239, 68, 68, 0.12); }
+    .badge.high { background: rgba(245, 158, 11, 0.14); color: #fcd34d; border-color: rgba(245, 158, 11, 0.28); }
+    .badge.medium { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.24); }
+    .badge.low { background: rgba(100, 116, 139, 0.1); color: #94a3b8; border-color: rgba(100, 116, 139, 0.2); }
+    .badge.success { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.26); }
+    .badge.info { background: rgba(37, 99, 235, 0.14); color: #93c5fd; border-color: rgba(37, 99, 235, 0.26); }
+
+    .signal-title {
+      margin: 12px 0 0;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+    }
+
+    .signal-body {
+      margin: 10px 0 14px;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.6;
+      line-clamp: 2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .signal-body.expanded {
+      display: block;
+      line-clamp: unset;
+      -webkit-line-clamp: unset;
+      -webkit-box-orient: initial;
+      overflow: visible;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-2);
+      background: rgba(255, 255, 255, 0.02);
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .signal-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--gray);
+      font-size: 12px;
+    }
+
+    .signal-time {
+      color: var(--gray-2);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .signal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .signal-actions .secondary-btn,
+    .signal-actions .ghost-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .save-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-color: rgba(37, 99, 235, 0.24);
+      color: #dbeafe;
+      background: rgba(37, 99, 235, 0.06);
+      cursor: pointer;
+    }
+
+    .save-btn.saved {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #d1fae5;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.12);
+    }
+
+    .secondary-btn {
+      background: rgba(37, 99, 235, 0.1);
+      border-color: rgba(37, 99, 235, 0.25);
+      color: #dbeafe;
+      cursor: pointer;
+    }
+
+    .ghost-btn {
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 12px;
+      padding: 18px 22px 22px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .composer-shell {
+      min-height: 0;
+      padding: 16px;
+    }
+
+    .composer-empty {
+      min-height: 100%;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      text-align: left;
+      color: var(--gray);
+      border: 1px dashed rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .composer-empty-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .composer-empty-title {
+      margin: 0;
+      color: var(--white);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      max-width: 30ch;
+    }
+
+    .composer-empty-subtitle {
+      margin: 6px 0 0;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 66ch;
+    }
+
+    .composer-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .composer-preview-card {
+      border-radius: 16px;
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      background: rgba(17, 17, 24, 0.9);
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .composer-preview-card h5 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray);
+    }
+
+    .composer-preview-card p {
+      margin: 0;
+      color: #dbeafe;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .composer-preview-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .composer-layout {
+      display: grid;
+      grid-template-columns: 0.95fr 1.35fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .composer-card {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .composer-title {
+      margin: 8px 0 4px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .composer-copy {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .analysis-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .analysis-item {
+      padding: 12px 13px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      cursor: pointer;
+    }
+
+    .analysis-item summary {
+      list-style: none;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--white);
+    }
+
+    .analysis-item p {
+      margin: 8px 0 0;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .analysis-item .fields {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(30, 30, 46, 0.8);
+    }
+
+    .field-label {
+      display: block;
+      color: var(--gray);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-bottom: 5px;
+    }
+
+    .field-value {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    .composer-pane {
+      display: grid;
+      gap: 12px;
+    }
+
+    .composer-tabs {
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 9px 12px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .tab-btn.active {
+      background: rgba(37, 99, 235, 0.12);
+      border-color: rgba(37, 99, 235, 0.34);
+      color: var(--white);
+    }
+
+    .draft-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .preview-flow {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .preview-line {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(30, 30, 46, 0.85);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .preview-line strong {
+      color: var(--white);
+      display: inline-block;
+      margin-top: 1px;
+    }
+
+    .draft-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(30, 30, 46, 0.85);
+    }
+
+    .draft-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .draft-textarea,
+    .content-textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      background: rgba(8, 8, 15, 0.9);
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      border-radius: 14px;
+      color: var(--white);
+      padding: 13px;
+      line-height: 1.65;
+      outline: none;
+    }
+
+    .draft-textarea:focus,
+    .content-textarea:focus {
+      border-color: rgba(37, 99, 235, 0.45);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .slider-row,
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .range {
+      width: 200px;
+      accent-color: var(--blue);
+    }
+
+    .count {
+      color: var(--gray);
+      font-size: 12px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px 22px 22px;
+    }
+
+    .content-card {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .content-title {
+      margin: 10px 0 8px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .content-toolbar {
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+
+    .content-quality {
+      font-size: 11px;
+      padding: 6px 9px;
+      border-radius: 999px;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-btn {
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .spin-panel {
+      margin: 0 22px 22px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .spin-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .spin-form .mini-input {
+      flex: 1 1 320px;
+    }
+
+    .insights-top {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px 22px 0;
+    }
+
+    .metric-card {
+      padding: 14px 15px;
+    }
+
+    .metric-label {
+      color: var(--gray);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-sub {
+      margin-top: 4px;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .insights-split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px 22px 0;
+    }
+
+    .insights-charts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px 22px 0;
+    }
+
+    .chart-card {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-2);
+      background: rgba(255, 255, 255, 0.025);
+      min-width: 0;
+    }
+
+    .chart-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-title {
+      margin: 0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray);
+    }
+
+    .chart-kpi {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--white);
+      text-align: right;
+    }
+
+    .chart-note {
+      margin-top: 3px;
+      color: var(--gray);
+      font-size: 12px;
+      text-align: right;
+      line-height: 1.45;
+    }
+
+    .donut-wrap {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .donut-stage {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+    }
+
+    .donut-center {
+      position: absolute;
+      width: 94px;
+      height: 94px;
+      border-radius: 999px;
+      background: rgba(8, 8, 15, 0.92);
+      border: 1px solid rgba(30, 30, 46, 0.95);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 10px;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.05);
+    }
+
+    .donut-center strong {
+      display: block;
+      font-size: 24px;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .donut-center span {
+      display: block;
+      margin-top: 4px;
+      color: var(--gray);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chart-legend {
+      display: grid;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .legend-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.2);
+      flex: none;
+    }
+
+    .legend-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .legend-value {
+      color: var(--white);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bar-chart-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .chart-footer {
+      margin-top: 10px;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .line-chart-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .chart-micro {
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .chart-gridline {
+      stroke: rgba(148, 163, 184, 0.08);
+      stroke-width: 1;
+    }
+
+    .chart-axis {
+      fill: var(--gray);
+      font-size: 11px;
+    }
+
+    .insight-card {
+      padding: 16px;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+      border: 1px solid rgba(30, 30, 46, 0.75);
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.9), rgba(59, 130, 246, 0.55));
+    }
+
+    .insights-panel {
+      margin: 12px 22px 22px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .insight-item {
+      padding: 12px 13px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(30, 30, 46, 0.85);
+      color: #dbeafe;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .insights-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      padding: 32px 20px;
+      border: 1px dashed rgba(148, 163, 184, 0.22);
+      border-radius: 18px;
+      color: var(--gray);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .module-empty {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      padding: 16px 22px 22px;
+    }
+
+    .hero-state {
+      width: min(100%, 980px);
+      border-radius: 28px;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.08), transparent 26%),
+        linear-gradient(180deg, rgba(17, 17, 24, 0.98), rgba(8, 8, 15, 0.96));
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+      padding: 28px;
+      text-align: left;
+    }
+
+    .hero-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-main {
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .hero-rail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 30, 46, 0.85);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--gray);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hero-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
+      flex: none;
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .landing-card {
+      border-radius: 22px;
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 18px;
+    }
+
+    .landing-title {
+      margin: 0 0 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--gray);
+    }
+
+    .landing-copy {
+      margin: 0;
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .landing-meta-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .landing-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(30, 30, 46, 0.9);
+      background: rgba(8, 8, 15, 0.48);
+      padding: 12px 14px;
+    }
+
+    .landing-meta strong {
+      display: block;
+      color: var(--white);
+      font-size: 13px;
+      letter-spacing: -0.02em;
+    }
+
+    .landing-meta span {
+      display: block;
+      margin-top: 3px;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .landing-value {
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(37, 99, 235, 0.24);
+      background: rgba(37, 99, 235, 0.08);
+      white-space: nowrap;
+    }
+
+    .radar-mark {
+      width: 104px;
+      height: 104px;
+      margin: 0 0 16px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid rgba(37, 99, 235, 0.22);
+      background:
+        radial-gradient(circle, rgba(37, 99, 235, 0.18) 0 24%, transparent 26%),
+        radial-gradient(circle, rgba(16, 185, 129, 0.08) 0 44%, transparent 46%);
+      box-shadow:
+        0 0 0 8px rgba(37, 99, 235, 0.025),
+        0 0 34px rgba(37, 99, 235, 0.15);
+      overflow: hidden;
+    }
+
+    .radar-mark::before,
+    .radar-mark::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      animation: pulseRing 2.8s ease-out infinite;
+    }
+
+    .radar-mark::after {
+      inset: 14px;
+      animation-delay: 0.9s;
+    }
+
+    .radar-core {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(147, 197, 253, 1), rgba(37, 99, 235, 0.95));
+      box-shadow: 0 0 24px rgba(37, 99, 235, 0.6);
+      position: relative;
+    }
+
+    .radar-core::before {
+      content: "";
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(37, 99, 235, 0.28);
+      animation: pulseGlow 2.8s ease-out infinite;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      max-width: 16ch;
+    }
+
+    .hero-copy {
+      margin: 0;
+      max-width: 720px;
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 10px;
+      margin: 6px 0 0;
+      max-width: 680px;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: #dbeafe;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .feature-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      margin-top: 7px;
+      flex: none;
+    }
+
+    .feature-dot.blue { background: var(--blue); box-shadow: 0 0 10px rgba(37, 99, 235, 0.45); }
+    .feature-dot.yellow { background: var(--yellow); box-shadow: 0 0 10px rgba(245, 158, 11, 0.25); }
+    .feature-dot.green { background: var(--green); box-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
+
+    .hero-actions {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .hero-scan {
+      width: 200px;
+      height: 48px;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 14px;
+    }
+
+    .hero-note {
+      color: var(--gray-2);
+      font-size: 12px;
+    }
+
+    .module-empty .empty-arrow {
+      font-size: 18px;
+      color: var(--blue);
+      margin-bottom: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.96); opacity: 0.6; }
+      70% { transform: scale(1.08); opacity: 0.1; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+
+    @keyframes pulseGlow {
+      0% { transform: scale(0.86); opacity: 0.45; }
+      70% { transform: scale(1.02); opacity: 0.08; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+
+    .banner {
+      margin: 0 22px 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fecaca;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .banner.show { display: flex; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: 180ms ease;
+      z-index: 40;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(var(--drawer-width), calc(100vw - 220px));
+      max-width: 100vw;
+      height: 100vh;
+      background: linear-gradient(180deg, rgba(16, 16, 24, 0.99), rgba(10, 10, 15, 0.99));
+      border-left: 1px solid var(--border);
+      box-shadow: -24px 0 80px rgba(0, 0, 0, 0.38);
+      transform: translateX(100%);
+      transition: 240ms ease;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-head {
+      padding: 18px;
+      border-bottom: 1px solid rgba(30, 30, 46, 0.75);
+    }
+
+    .drawer-body {
+      padding: 16px 18px 20px;
+      overflow: auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .drawer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .drawer-panel {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--border-2);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .drawer-panel h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray);
+    }
+
+    .drawer-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .drawer-tab {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 9px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--gray);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .drawer-tab.active {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--white);
+      border-color: rgba(37, 99, 235, 0.3);
+    }
+
+    .drawer-compose {
+      display: grid;
+      gap: 12px;
+    }
+
+    .drawer-draft {
+      display: none;
+    }
+
+    .drawer-draft.active {
+      display: block;
+    }
+
+    .copy-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: white;
+      display: inline-block;
+      animation: spin 800ms linear infinite;
+      vertical-align: middle;
+    }
+
+    .inline-spinner {
+      width: 12px;
+      height: 12px;
+      border-width: 2px;
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1220px) {
+      .feed,
+      .content-grid,
+      .insights-top,
+      .insights-split,
+      .insights-charts {
+        grid-template-columns: 1fr 1fr;
+      }
+      .module-grid,
+      .composer-layout {
+        grid-template-columns: 1fr;
+      }
+      .drawer {
+        width: min(100vw, 460px);
+      }
+    }
+
+    @media (max-width: 960px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+        width: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .main {
+        margin-left: 0;
+        width: 100%;
+      }
+      .topbar,
+      .workspace {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .filter-bar,
+      .stats-row,
+      .feed,
+      .content-grid,
+      .insights-top,
+      .insights-split,
+      .insights-charts {
+        grid-template-columns: 1fr;
+      }
+      .donut-wrap {
+        grid-template-columns: 1fr;
+      }
+      .drawer {
+        width: 100vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <h2 class="brand-title">Mem0 GrowthOS</h2>
+          <p class="brand-subtitle">Growth Intelligence Platform</p>
+        </div>
+        <nav class="nav" id="sidebarNav">
+          <button class="nav-item active" data-module="signal">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M6 17a6 6 0 0 1 12 0"/><path d="M9 14a3 3 0 0 1 6 0"/></svg>
+            <span class="nav-label">Signal Radar</span>
+            <span class="nav-badge" id="badge-signal">—</span>
+          </button>
+          <button class="nav-item" data-module="compose">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 8h8"/><path d="M8 12h5"/></svg>
+            <span class="nav-label">Outreach Composer</span>
+            <span class="nav-badge" id="badge-compose">—</span>
+          </button>
+          <button class="nav-item" data-module="content">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 10h16"/><path d="M9 5v14"/></svg>
+            <span class="nav-label">Content Command</span>
+            <span class="nav-badge" id="badge-content">—</span>
+          </button>
+          <button class="nav-item" data-module="insights">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M12 16V7"/><path d="M16 16v-5"/></svg>
+            <span class="nav-label">Insights</span>
+            <span class="nav-badge" id="badge-insights">—</span>
+          </button>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <div>Built for BSV AI Fellowship</div>
+        <div>© 2026 Niranjan Tapasvi · All rights reserved</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Mem0 GrowthOS</h1>
+          <p>Find signals, write messages, and turn them into content.</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="status-chip"><span class="status-dot"></span><span id="lastScanText">Last scan: not run yet</span></div>
+          <button class="icon-btn" id="exportBtn" title="Export outputs.md" aria-label="Export outputs.md">Export</button>
+          <div class="avatar">Mem0 Team</div>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <div class="banner" id="errorBanner">
+          <span id="errorText">Something went wrong.</span>
+          <button class="ghost-btn" id="retryBtn">Retry</button>
+        </div>
+
+        <section class="module active" id="module-signal">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Signal Radar</h2>
+                <p class="panel-subtitle">Find developer pain points across Reddit, GitHub, Stack Overflow and X.</p>
+              </div>
+            </div>
+
+            <div class="filter-bar">
+              <select class="filter-select" id="sourceFilter">
+                <option value="all">All Sources</option>
+                <option value="Reddit">Reddit</option>
+                <option value="GitHub Issue">GitHub</option>
+                <option value="Stack Overflow">Stack Overflow</option>
+                <option value="X / Twitter">X</option>
+              </select>
+              <select class="filter-select" id="levelFilter">
+                <option value="all">All Levels</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+              <select class="filter-select" id="urgencyFilter">
+                <option value="all">All</option>
+                <option value="critical">Critical (8-10)</option>
+                <option value="high">High (6-7)</option>
+                <option value="medium">Medium (3-5)</option>
+              </select>
+              <button class="primary-btn" id="scanBtn"><span id="scanSpinner" class="spinner inline-spinner hidden"></span> <span id="scanBtnText">Scan Now</span></button>
+            </div>
+
+            <div class="module-empty pre-scan-state" id="signalPreState">
+              <div class="hero-state">
+                <div class="hero-shell">
+                  <div class="hero-main">
+                    <div class="hero-rail">
+                      <span class="hero-pill"><span class="dot"></span>Idle mode</span>
+                      <span class="hero-pill">4 live sources</span>
+                      <span class="hero-pill">Outputs locked until scan</span>
+                    </div>
+                    <div class="radar-mark" aria-hidden="true"><div class="radar-core"></div></div>
+                    <h3 class="hero-title">Ready to scan developer signals</h3>
+                    <p class="hero-copy">This app scans public developer posts for people who are stuck on AI memory. It then sorts the results and prepares the next step.</p>
+                    <div class="feature-list">
+                      <div class="feature-row"><span class="feature-dot blue"></span><span>Checks four live places where developers ask for help</span></div>
+                      <div class="feature-row"><span class="feature-dot yellow"></span><span>Ranks each signal from low to high urgency</span></div>
+                      <div class="feature-row"><span class="feature-dot green"></span><span>Prepares outreach and content once results arrive</span></div>
+                    </div>
+                    <div class="hero-actions">
+                      <button class="primary-btn hero-scan" id="heroScanBtn">Scan Now</button>
+                      <div class="hero-note">Estimated scan time: 8 to 12 seconds</div>
+                    </div>
+                  </div>
+                  <div class="hero-side">
+                    <div class="landing-card">
+                      <div class="landing-title">System overview</div>
+                      <p class="landing-copy">Nothing loads until you scan. Then the workspace fills with signals, simple message drafts, content, and a few takeaways.</p>
+                    </div>
+                    <div class="landing-card">
+                      <div class="landing-title">Pipeline metadata</div>
+                      <div class="landing-meta-grid">
+                        <div class="landing-meta">
+                          <div>
+                            <strong>Sources monitored</strong>
+                            <span>Reddit, GitHub, Stack Overflow, X</span>
+                          </div>
+                          <div class="landing-value">4</div>
+                        </div>
+                        <div class="landing-meta">
+                          <div>
+                            <strong>Sections</strong>
+                            <span>Radar, composer, content, insights</span>
+                          </div>
+                          <div class="landing-value">4</div>
+                        </div>
+                        <div class="landing-meta">
+                          <div>
+                            <strong>Status</strong>
+                            <span>No scan run yet</span>
+                          </div>
+                          <div class="landing-value">Idle</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="landing-card">
+                      <div class="landing-title">What happens next</div>
+                      <p class="landing-copy">You click scan, results appear, and the app helps you move from signal to message to content.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stats-row hidden" id="signalStats"></div>
+            <div class="feed hidden" id="signalFeed"></div>
+          </div>
+        </section>
+
+        <section class="module" id="module-compose">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Outreach Composer</h2>
+                <p class="panel-subtitle">Turn one signal into a simple outreach message.</p>
+              </div>
+              <div class="panel-actions">
+                <button class="secondary-btn" id="refreshComposeBtn">Refresh Drafts</button>
+              </div>
+            </div>
+            <div class="module-empty pre-scan-state" id="composePreState">
+              <div class="hero-state" style="max-width: 720px;">
+                <div class="empty-arrow">↗</div>
+                <h3 class="hero-title" style="font-size:22px;">Run a scan first to populate outreach signals</h3>
+                <p class="hero-copy">Once signals land, this module will surface saved targets, analysis context, and three draft tones you can edit and copy.</p>
+              </div>
+            </div>
+            <div class="module-grid hidden" id="composeBody">
+              <div class="stack">
+                <div class="metric-card">
+                  <div class="metric-label">Saved Signals</div>
+                  <div class="metric-value" id="savedSignalCount">0</div>
+                  <div class="metric-sub">Signals ready for outreach sequencing.</div>
+                </div>
+                <div id="savedSignalList" class="stack"></div>
+              </div>
+              <div class="composer-shell composer-card">
+                <div id="composerEmpty" class="composer-empty">
+                  Select a signal from the left or click Compose Outreach on Signal Radar.
+                </div>
+                <div id="composerDetail" class="hidden">
+                  <div class="row-between">
+                    <div>
+                      <div class="badge info" id="composerSourceBadge">Signal</div>
+                      <h3 class="composer-title" id="composerTitle">Title</h3>
+                      <p class="panel-subtitle" id="composerMeta">Context and analysis.</p>
+                    </div>
+                    <button class="secondary-btn" id="drawerOpenBtn">Open Panel</button>
+                  </div>
+
+                  <div class="composer-layout" style="margin-top:14px;">
+                    <div class="composer-card">
+                      <h4 style="margin:0 0 10px; text-transform:uppercase; letter-spacing:.12em; font-size:11px; color:var(--gray);">Signal Context</h4>
+                      <div id="composerContext"></div>
+                      <div class="analysis-list" id="composerAnalysis"></div>
+                    </div>
+                    <div class="composer-card">
+                      <div class="row-between">
+                        <div>
+                          <h4 style="margin:0; text-transform:uppercase; letter-spacing:.12em; font-size:11px; color:var(--gray);">Draft Variants</h4>
+                        </div>
+                        <button class="secondary-btn" id="composerRegenerateBtn">Regenerate</button>
+                      </div>
+                      <div class="composer-tabs" id="composerTabs" style="margin-top:12px;"></div>
+                      <div class="draft-panel" id="composerDrafts" style="margin-top:12px;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="module" id="module-content">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Content Command</h2>
+                <p class="panel-subtitle">Create simple content you can reuse or share.</p>
+              </div>
+            </div>
+            <div class="module-empty pre-scan-state" id="contentPreState">
+              <div class="hero-state" style="max-width: 720px;">
+                <div class="empty-arrow">↗</div>
+                <h3 class="hero-title" style="font-size:22px;">Run a scan first to generate content assets</h3>
+                <p class="hero-copy">LinkedIn, blog hooks, and CTO outreach will appear here after the first scan populates the session.</p>
+              </div>
+            </div>
+            <div id="contentBody" class="hidden">
+              <div class="content-grid" id="contentGrid"></div>
+              <div class="spin-panel">
+              <div class="row-between">
+                <div>
+                  <div class="stat-label" style="margin-bottom:7px;">Spin Variations</div>
+                  <div class="panel-subtitle" style="margin:0;">Generate all three pieces with a specific angle for a narrower GTM message.</div>
+                </div>
+              </div>
+              <div class="spin-form">
+                <input class="mini-input" id="spinAngle" placeholder='e.g. focus on team assistant use case'>
+                <button class="primary-btn" id="spinGenerateBtn">Generate Variation</button>
+              </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="module" id="module-insights">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Insights</h2>
+                <p class="panel-subtitle">See what the scan found at a glance.</p>
+              </div>
+              <div class="panel-actions">
+                <button class="secondary-btn" id="refreshInsightsBtn">Refresh Insights</button>
+              </div>
+            </div>
+            <div class="module-empty pre-scan-state" id="insightsPreState">
+              <div class="hero-state" style="max-width: 720px;">
+                <div class="empty-arrow">↗</div>
+                <h3 class="hero-title" style="font-size:22px;">Run a scan first to populate session insights</h3>
+                <p class="hero-copy">The insights panel will summarize source concentration, use cases, and strategic observations after the first scan.</p>
+              </div>
+            </div>
+            <div id="insightsBody" class="hidden">
+              <div class="insights-top" id="insightMetrics"></div>
+              <div class="insights-charts" id="insightsCharts">
+                <div class="chart-card" id="sourceChart"></div>
+                <div class="chart-card" id="useCaseChart"></div>
+                <div class="chart-card wide" id="trendChart"></div>
+              </div>
+              <div class="insights-panel">
+                <div class="metric-label">Strategic Observations</div>
+                <div class="panel-subtitle" style="margin-top:4px;">Generated from session data via Gemini, with fallback heuristics if needed.</div>
+                <div class="insights-list" id="insightsList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="composerDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="badge info" id="drawerSourceBadge">Composer</div>
+        <div style="margin-top:8px; font-size:16px; font-weight:800; letter-spacing:-.03em;" id="drawerTitle">Select a signal</div>
+        <div style="margin-top:4px; color:var(--gray); font-size:12px;" id="drawerMeta">Outreach drafts will appear here.</div>
+      </div>
+      <button class="ghost-btn" id="closeDrawerBtn">Close</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-grid">
+        <div class="drawer-panel">
+          <h4>Signal Context</h4>
+          <div id="drawerContext"></div>
+        </div>
+        <div class="drawer-panel">
+          <div class="drawer-tabs" id="drawerTabs"></div>
+          <div class="drawer-compose" id="drawerDrafts" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    const state = {
+      activeModule: "signal",
+      session: null,
+      lastScanAt: null,
+      filters: { source: "all", level: "all", urgency: "all" },
+      selectedSignalId: null,
+      composeData: null,
+      composeTab: "helpful",
+      drawerTab: "helpful",
+      drawerOpen: false,
+      contentEditable: { linkedin_post: false, blog_hook: false, cold_email: false },
+      contentDrafts: {},
+      contentAngle: "",
+      loading: { scan: false, compose: false, content: false, insights: false },
+      errorRetry: null
+    };
+
+    const sourceMeta = {
+      "Reddit": { className: "source-reddit", label: "Reddit" },
+      "GitHub Issue": { className: "source-github", label: "GitHub" },
+      "Stack Overflow": { className: "source-stackoverflow", label: "Stack Overflow" },
+      "X / Twitter": { className: "source-x", label: "X" }
+    };
+
+    const insightsFallback = [
+      "Reddit and GitHub usually surface the strongest problems first.",
+      "High-urgency signals should be followed up quickly.",
+      "People respond better to a simple message than a broad pitch.",
+      "A narrow use case is easier to explain and easier to act on."
+    ];
+
+    const SAVED_SIGNAL_KEY = "mem0-growthos-saved-signal-ids";
+
+    const $ = (id) => document.getElementById(id);
+
+    function loadSavedSignalIds() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem(SAVED_SIGNAL_KEY) || "[]"));
+      } catch {
+        return new Set();
+      }
+    }
+
+    function persistSavedSignalIds(ids) {
+      try {
+        localStorage.setItem(SAVED_SIGNAL_KEY, JSON.stringify(Array.from(ids)));
+      } catch {
+        // localStorage can be unavailable in hardened browser contexts.
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>'"]/g, (ch) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      }[ch]));
+    }
+
+    function clampText(text, max = 220) {
+      const value = String(text ?? "").trim();
+      return value.length > max ? value.slice(0, max).trimEnd() + "…" : value;
+    }
+
+    function sourceClass(source) {
+      return (sourceMeta[source] || { className: "source-other" }).className;
+    }
+
+    function sourceLabel(source) {
+      return (sourceMeta[source] || { label: source || "Other" }).label;
+    }
+
+    function simpleLevelLabel(level) {
+      const value = String(level || "").toLowerCase();
+      if (value.includes("beginner")) return "New";
+      if (value.includes("intermediate")) return "Some experience";
+      if (value.includes("advanced")) return "Advanced";
+      return level || "Unknown";
+    }
+
+    function simpleUseCaseLabel(useCase) {
+      const value = String(useCase || "").toLowerCase();
+      const map = {
+        "support copilot": "support tool",
+        "multi-tenant SaaS assistant": "team assistant",
+        "personal assistant prototype": "personal assistant",
+        "consumer AI companion": "AI companion",
+        "sales workflow automation": "sales workflow",
+      };
+      if (map[useCase]) return map[useCase];
+      if (value.includes("support")) return "support tool";
+      if (value.includes("assistant")) return "assistant";
+      if (value.includes("companion")) return "AI companion";
+      if (value.includes("sales")) return "sales workflow";
+      return useCase ? String(useCase).replace(/[-_]/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase()) : "Unknown";
+    }
+
+    function simplifyText(text) {
+      return String(text || "")
+        .replace(/multi-tenant SaaS assistant/gi, "team assistant")
+        .replace(/multi-tenant SaaS/gi, "team products")
+        .replace(/technical/g, "practical")
+        .replace(/memory wall/gi, "memory problem")
+        .replace(/cross-contaminating/g, "mixing")
+        .replace(/root cause/g, "main issue");
+    }
+
+    function urgencyClass(score) {
+      if (score >= 8) return "urgent";
+      if (score >= 6) return "high";
+      if (score >= 3) return "medium";
+      return "low";
+    }
+
+    function urgencyLabel(score) {
+      if (score >= 8) return "Critical";
+      if (score >= 6) return "High";
+      if (score >= 3) return "Medium";
+      return "Low";
+    }
+
+    function timeSinceScan() {
+      if (!state.lastScanAt) return "not run yet";
+      if (state.loading.scan) return "just now";
+      const seconds = Math.max(0, Math.floor((Date.now() - state.lastScanAt) / 1000));
+      if (seconds < 5) return "just now";
+      if (seconds < 60) return `${seconds}s ago`;
+      const minutes = Math.floor(seconds / 60);
+      return `${minutes}m ago`;
+    }
+
+    function updateLastScanText() {
+      $("lastScanText").textContent = `Last scan: ${timeSinceScan()}`;
+    }
+
+    function setLoading(key, value) {
+      state.loading[key] = value;
+      const map = {
+        scan: ["scanBtn", "scanSpinner", "scanBtnText", "Signal Radar"],
+        compose: ["composerRegenerateBtn", null, null, null],
+        content: ["spinGenerateBtn", null, null, null],
+        insights: ["refreshInsightsBtn", null, null, null]
+      };
+      if (key === "scan") {
+        $("scanBtn").disabled = value;
+        const heroBtn = $("heroScanBtn");
+        if (heroBtn) heroBtn.disabled = value;
+        $("scanSpinner").classList.toggle("hidden", !value);
+        $("scanBtnText").textContent = value ? "Running Pipeline" : "Scan Now";
+      }
+      if (key === "compose") {
+        const btn = $("composerRegenerateBtn");
+        if (btn) btn.disabled = value;
+      }
+      if (key === "content") {
+        const btn = $("spinGenerateBtn");
+        if (btn) btn.disabled = value;
+      }
+      if (key === "insights") {
+        const btn = $("refreshInsightsBtn");
+        if (btn) btn.disabled = value;
+      }
+    }
+
+    function showError(message, retryFn = null) {
+      $("errorText").textContent = message;
+      $("errorBanner").classList.add("show");
+      state.errorRetry = retryFn;
+    }
+
+    function clearError() {
+      $("errorBanner").classList.remove("show");
+      state.errorRetry = null;
+    }
+
+    function setActiveModule(module) {
+      state.activeModule = module;
+      document.querySelectorAll(".module").forEach((el) => el.classList.toggle("active", el.id === `module-${module}`));
+      document.querySelectorAll(".nav-item").forEach((el) => el.classList.toggle("active", el.dataset.module === module));
+      if (module === "compose" && state.selectedSignalId && !state.composeData) {
+        openComposerForSelected(true);
+      }
+      if (module === "insights" && state.session && (!state.session.insights || !state.session.insights.length)) {
+        refreshInsights();
+      }
+    }
+
+    function filteredSignals() {
+      const signals = state.session?.signals || [];
+      return signals.filter((signal) => {
+        const sourceOk = state.filters.source === "all" || signal.source === state.filters.source;
+        const levelOk = state.filters.level === "all" || signal.technical_level === state.filters.level;
+        let urgencyOk = true;
+        const score = Number(signal.urgency_score || 0);
+        if (state.filters.urgency === "critical") urgencyOk = score >= 8;
+        if (state.filters.urgency === "high") urgencyOk = score >= 6 && score <= 7;
+        if (state.filters.urgency === "medium") urgencyOk = score >= 3 && score <= 5;
+        return sourceOk && levelOk && urgencyOk;
+      });
+    }
+
+    function selectedSignal() {
+      return state.session?.signals?.find((signal) => String(signal.id) === String(state.selectedSignalId)) || null;
+    }
+
+    function hasSessionData() {
+      return Boolean(state.session && Array.isArray(state.session.signals) && state.session.signals.length);
+    }
+
+    function updateModuleVisibility() {
+      const hasData = hasSessionData();
+      $("signalPreState").classList.toggle("hidden", hasData);
+      $("signalStats").classList.toggle("hidden", !hasData);
+      $("signalFeed").classList.toggle("hidden", !hasData);
+      $("composePreState").classList.toggle("hidden", hasData);
+      $("composeBody").classList.toggle("hidden", !hasData);
+      $("contentPreState").classList.toggle("hidden", hasData);
+      $("contentBody").classList.toggle("hidden", !hasData);
+      $("insightsPreState").classList.toggle("hidden", hasData);
+      $("insightsBody").classList.toggle("hidden", !hasData);
+    }
+
+    function updateSidebarBadges() {
+      const session = state.session || {};
+      if (!hasSessionData()) {
+        $("badge-signal").textContent = "—";
+        $("badge-compose").textContent = "—";
+        $("badge-content").textContent = "—";
+        $("badge-insights").textContent = "—";
+        return;
+      }
+      $("badge-signal").textContent = String((session.signals || []).length);
+      $("badge-compose").textContent = String((session.saved_signals || []).length || (session.signals || []).filter((signal) => signal.saved).length);
+      $("badge-content").textContent = String(Object.keys(session.content || {}).length || 3);
+      $("badge-insights").textContent = String((session.insights || []).length || 4);
+    }
+
+    function metricCard(label, value, sub, countUp = false) {
+      return `
+        <div class="metric-card">
+          <div class="metric-label">${escapeHtml(label)}</div>
+          <div class="metric-value">${countUp ? `<span class="countup" data-target="${escapeHtml(value)}">0</span>` : escapeHtml(value)}</div>
+          <div class="metric-sub">${escapeHtml(sub || "")}</div>
+        </div>`;
+    }
+
+    function animateCountups(root) {
+      const nodes = root ? root.querySelectorAll(".countup") : document.querySelectorAll(".countup");
+      nodes.forEach((node) => {
+        const targetRaw = Number(String(node.dataset.target || "0").replace(/[^0-9.-]/g, "")) || 0;
+        const isDecimal = String(node.dataset.target || "").includes(".");
+        const start = performance.now();
+        const duration = 800;
+        const step = (now) => {
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const value = targetRaw * eased;
+          node.textContent = isDecimal ? value.toFixed(1) : String(Math.round(value));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }
+
+    function chartColor(index) {
+      const palette = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+      return palette[index % palette.length];
+    }
+
+    function chartTotal(items) {
+      return items.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+    }
+
+    function polarToCartesian(cx, cy, radius, angleInDegrees) {
+      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+      return {
+        x: cx + (radius * Math.cos(angleInRadians)),
+        y: cy + (radius * Math.sin(angleInRadians)),
+      };
+    }
+
+    function describeArc(cx, cy, radius, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, radius, endAngle);
+      const end = polarToCartesian(cx, cy, radius, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+    }
+
+    function renderSourceChart(items) {
+      const total = chartTotal(items);
+      const topItem = [...items].sort((a, b) => (b.value || 0) - (a.value || 0))[0] || { label: "No data", value: 0, percent: 0 };
+      if (!total) {
+        return `
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">Source Mix</div>
+              <div class="panel-subtitle" style="margin-top:4px;">Where the signals came from.</div>
+            </div>
+          </div>
+          <div class="empty-state">No source data yet. Run a scan to populate this chart.</div>`;
+      }
+
+      let cursor = 0;
+      const arcs = items.map((item, index) => {
+        const value = Number(item.value) || 0;
+        const start = (cursor / total) * 360;
+        const end = ((cursor + value) / total) * 360;
+        cursor += value;
+        return `
+          <path d="${describeArc(90, 90, 58, start, end)}"
+                fill="none"
+                stroke="${chartColor(index)}"
+                stroke-width="20"
+                stroke-linecap="round" />`;
+      }).join("");
+
+      const legend = items.map((item, index) => `
+        <div class="legend-item">
+          <span class="legend-left">
+            <span class="legend-swatch" style="background:${chartColor(index)}"></span>
+            <span class="legend-label">${escapeHtml(item.label)}</span>
+          </span>
+          <span class="legend-value">${escapeHtml(item.percent)}%</span>
+        </div>
+      `).join("");
+
+      return `
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Source Mix</div>
+            <div class="panel-subtitle" style="margin-top:4px;">Where the signals came from.</div>
+          </div>
+          <div>
+            <div class="chart-kpi">${escapeHtml(topItem.label)}</div>
+            <div class="chart-note">Leads with ${escapeHtml(String(topItem.percent || 0))}% of signals</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut-stage">
+            <svg viewBox="0 0 180 180" class="chart-svg" aria-hidden="true">
+              <circle cx="90" cy="90" r="58" fill="none" stroke="rgba(148,163,184,0.08)" stroke-width="20"></circle>
+              ${arcs}
+            </svg>
+            <div class="donut-center">
+              <strong>${escapeHtml(String(items.length))}</strong>
+              <span>active sources</span>
+            </div>
+          </div>
+          <div class="chart-legend">${legend}</div>
+        </div>
+        <div class="chart-footer">This shows where people are talking about the problem most.</div>`;
+    }
+
+    function renderUseCaseChart(items) {
+      const total = chartTotal(items);
+      if (!total) {
+        return `
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">Use Case Mix</div>
+              <div class="panel-subtitle" style="margin-top:4px;">What people are trying to build.</div>
+            </div>
+          </div>
+          <div class="empty-state">No use case data yet. Run a scan to populate this chart.</div>`;
+      }
+
+      const sorted = [...items].sort((a, b) => (b.value || 0) - (a.value || 0));
+      const width = 560;
+      const left = 170;
+      const right = 36;
+      const top = 28;
+      const barH = 16;
+      const gap = 18;
+      const maxWidth = width - left - right;
+      const height = top + (sorted.length * (barH + gap)) + 24;
+
+      const rows = sorted.map((item, index) => {
+        const value = Number(item.value) || 0;
+        const percent = Number(item.percent) || Math.round((value / total) * 100);
+        const barWidth = Math.max(12, (value / Math.max(...sorted.map((entry) => Number(entry.value) || 0), 1)) * maxWidth);
+        const y = top + (index * (barH + gap));
+        const color = chartColor(index);
+        return `
+          <g>
+            <text x="0" y="${y + 12}" class="chart-axis">${escapeHtml(item.label)}</text>
+            <rect x="${left}" y="${y}" width="${maxWidth}" height="${barH}" rx="8" fill="rgba(148,163,184,0.08)"></rect>
+            <rect x="${left}" y="${y}" width="${barWidth}" height="${barH}" rx="8" fill="${color}"></rect>
+            <text x="${width}" y="${y + 12}" text-anchor="end" class="chart-axis" style="font-size:12px; fill:#e2e8f0;">${percent}%</text>
+          </g>`;
+      }).join("");
+
+      const leader = sorted[0] || { label: "None", percent: 0 };
+      return `
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Use Case Mix</div>
+            <div class="panel-subtitle" style="margin-top:4px;">What people are trying to build.</div>
+          </div>
+          <div>
+            <div class="chart-kpi">${escapeHtml(leader.label)}</div>
+            <div class="chart-note">Top use case at ${escapeHtml(String(leader.percent || 0))}%</div>
+          </div>
+        </div>
+        <svg viewBox="0 0 ${width} ${height}" class="chart-svg" role="img" aria-label="Use case distribution chart">
+          ${rows}
+        </svg>
+        <div class="chart-footer">This helps show which problem comes up most often.</div>`;
+    }
+
+    function renderTrendChart(signals) {
+      const series = (signals || []).map((signal, index) => ({
+        label: signal.title || `Signal ${index + 1}`,
+        value: Number(signal.urgency_score) || 0,
+        source: signal.source || "Unknown"
+      }));
+
+      if (!series.length) {
+        return `
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">Urgency Trend</div>
+              <div class="panel-subtitle" style="margin-top:4px;">How urgent the signals feel.</div>
+            </div>
+          </div>
+          <div class="empty-state">No urgency data yet. Run a scan to populate this chart.</div>`;
+      }
+
+      const width = 920;
+      const height = 240;
+      const pad = { top: 24, right: 24, bottom: 38, left: 28 };
+      const innerW = width - pad.left - pad.right;
+      const innerH = height - pad.top - pad.bottom;
+      const minY = 1;
+      const maxY = 10;
+      const points = series.map((point, index) => {
+        const x = pad.left + (series.length === 1 ? innerW / 2 : (index / (series.length - 1)) * innerW);
+        const y = pad.top + innerH - (((point.value - minY) / (maxY - minY)) * innerH);
+        return { ...point, x, y };
+      });
+
+      const linePath = points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+      const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - pad.bottom} L ${points[0].x} ${height - pad.bottom} Z`;
+      const average = points.reduce((sum, point) => sum + point.value, 0) / points.length;
+      const avgY = pad.top + innerH - (((average - minY) / (maxY - minY)) * innerH);
+      const first = points[0].value;
+      const last = points[points.length - 1].value;
+      const delta = last - first;
+
+      const gridLines = [1, 3, 5, 7, 9].map((value) => {
+        const y = pad.top + innerH - (((value - minY) / (maxY - minY)) * innerH);
+        return `
+          <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="chart-gridline"></line>
+          <text x="0" y="${y + 4}" class="chart-axis">${value}</text>`;
+      }).join("");
+
+      const pointsMarkup = points.map((point) => `
+        <g>
+          <circle cx="${point.x}" cy="${point.y}" r="5" fill="${point.value >= 8 ? "#ef4444" : "#2563eb"}" stroke="rgba(8,8,15,0.95)" stroke-width="3"></circle>
+        </g>`).join("");
+
+      const xLabels = points.map((point, index) => `
+        <text x="${point.x}" y="${height - 12}" text-anchor="middle" class="chart-axis">${index + 1}</text>
+      `).join("");
+
+      return `
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">Urgency Trend</div>
+            <div class="panel-subtitle" style="margin-top:4px;">How urgent the signals feel.</div>
+          </div>
+          <div>
+            <div class="chart-kpi">${average.toFixed(1)}</div>
+            <div class="chart-note">Average urgency · ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} from first to last</div>
+          </div>
+        </div>
+        <div class="line-chart-wrap">
+          <svg viewBox="0 0 ${width} ${height}" class="chart-svg" role="img" aria-label="Urgency trend chart">
+            <defs>
+              <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#2563eb" stop-opacity="0.36"></stop>
+                <stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"></stop>
+              </linearGradient>
+            </defs>
+            ${gridLines}
+            <line x1="${pad.left}" y1="${avgY}" x2="${width - pad.right}" y2="${avgY}" stroke="rgba(37,99,235,0.35)" stroke-dasharray="4 5"></line>
+            <path d="${areaPath}" fill="url(#trendFill)"></path>
+            <path d="${linePath}" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            ${pointsMarkup}
+            ${xLabels}
+          </svg>
+          <div class="chart-micro">Red dots mean the signal is more urgent. The dotted line shows the session average.</div>
+        </div>`;
+    }
+
+    function renderSignalStats() {
+      if (!hasSessionData()) {
+        $("signalStats").innerHTML = "";
+        return;
+      }
+      const list = filteredSignals();
+      const critical = list.filter((signal) => signal.urgency_score >= 8).length;
+      const avg = list.length ? (list.reduce((sum, signal) => sum + Number(signal.urgency_score || 0), 0) / list.length) : 0;
+      const sources = new Set(list.map((signal) => signal.source)).size;
+      const session = state.session || {};
+      $("signalStats").innerHTML = [
+        metricCard("Signals Found", list.length, "Showing results for the current filters.", true),
+        metricCard("High Priority", critical, "Signals that need a quick response.", true),
+        metricCard("Average Urgency", avg ? avg.toFixed(1) : "0.0", "Higher means the problem feels more urgent.", true),
+        metricCard("Sources Watching", sources, `Out of ${session.metrics?.sources_active || 0} sources scanned.`, true)
+      ].join("");
+      animateCountups($("signalStats"));
+    }
+
+    function signalCard(signal, { compact = false } = {}) {
+      const analysis = signal.analysis || {};
+      const preview = compact ? clampText(signal.body, 140) : clampText(signal.body, 220);
+      const number = String(signal.id).padStart(2, "0");
+      const savedLabel = signal.saved ? `<span class="copy-state">✓ Saved</span>` : "Save Signal";
+      return `
+        <article class="signal-card ${signal.urgency_class === "urgent" ? "urgent" : ""}" data-number="${number}" data-action="select-signal" data-id="${signal.id}" role="button" tabindex="0" aria-label="Open signal ${escapeHtml(signal.title || "")}">
+          <div class="signal-meta">
+            <div class="badge ${sourceClass(signal.source)}">${escapeHtml(sourceLabel(signal.source))}</div>
+            <div class="badge ${urgencyClass(signal.urgency_score)}">${escapeHtml(signal.urgency_label)} · ${signal.urgency_score}</div>
+            <div class="signal-time">${escapeHtml(signal.timestamp || "")}</div>
+          </div>
+          <div class="signal-title">${escapeHtml(signal.title || "")}</div>
+          <div class="signal-body">${escapeHtml(preview)}</div>
+          <div class="tag-row">
+            <span class="tag">Skill: ${escapeHtml(simpleLevelLabel(signal.technical_level || "Unknown"))}</span>
+            <span class="tag">Need: ${escapeHtml(simpleUseCaseLabel(signal.use_case || "Unknown"))}</span>
+            ${analysis.why_that_is_failing ? `<span class="tag">Issue understood</span>` : ""}
+          </div>
+          <div class="signal-actions">
+            <button class="secondary-btn" data-action="compose" data-id="${signal.id}">Compose Outreach</button>
+            <button class="save-btn ${signal.saved ? "saved" : ""}" data-action="save" data-id="${signal.id}">${savedLabel}</button>
+          </div>
+        </article>`;
+    }
+
+    function renderSignalFeed() {
+      if (!hasSessionData()) {
+        $("signalFeed").innerHTML = "";
+        return;
+      }
+      const signals = filteredSignals();
+      if (!signals.length) {
+        $("signalFeed").innerHTML = `<div class="empty-state">No signals match these filters. Try again or widen the view.</div>`;
+        return;
+      }
+      $("signalFeed").innerHTML = signals.map((signal) => signalCard(signal)).join("");
+    }
+
+    function renderSavedSignals() {
+      if (!hasSessionData()) {
+        $("savedSignalCount").textContent = "—";
+        $("savedSignalList").innerHTML = `<div class="empty-state">Run a scan to see saved signals here.</div>`;
+        return;
+      }
+      const signals = (state.session?.signals || []).filter((signal) => signal.saved);
+      $("savedSignalCount").textContent = String(signals.length);
+      if (!signals.length) {
+        $("savedSignalList").innerHTML = `<div class="empty-state">No saved signals yet. Save one from Signal Radar to use it here.</div>`;
+        return;
+      }
+      $("savedSignalList").innerHTML = signals.map((signal) => signalCard(signal, { compact: true })).join("");
+    }
+
+    function renderComposerPanel() {
+      const signal = selectedSignal();
+      const composerEmpty = $("composerEmpty");
+      const composerDetail = $("composerDetail");
+      if (!signal) {
+        composerEmpty.classList.remove("hidden");
+        composerDetail.classList.add("hidden");
+        const savedCount = (state.session?.saved_signals || []).length || 0;
+        composerEmpty.innerHTML = `
+          <div class="composer-empty-head">
+            <div>
+              <div class="badge info">Composer idle</div>
+              <h3 class="composer-empty-title">Pick a signal to write the message</h3>
+              <p class="composer-empty-subtitle">This panel becomes the writing space for one signal at a time. Until then, it shows the two message styles you can use.</p>
+            </div>
+            <div class="badge ${savedCount ? "success" : "low"}">${savedCount} saved</div>
+          </div>
+          <div class="composer-preview-grid">
+            <div class="composer-preview-card">
+              <h5>Helpful</h5>
+              <p>Start with the problem they are feeling and offer a simple next step.</p>
+            </div>
+            <div class="composer-preview-card">
+              <h5>Direct</h5>
+              <p>Short, clear, and to the point for busy founders or team leads.</p>
+            </div>
+          </div>
+          <div class="preview-flow">
+            <div class="preview-line"><strong>1.</strong> Pick a saved signal or click <strong>Compose Outreach</strong>.</div>
+            <div class="preview-line"><strong>2.</strong> The left side shows the signal in plain language.</div>
+            <div class="preview-line"><strong>3.</strong> The right side shows two editable message options.</div>
+          </div>`;
+        return;
+      }
+      composerEmpty.classList.add("hidden");
+      composerDetail.classList.remove("hidden");
+
+      $("composerSourceBadge").textContent = sourceLabel(signal.source);
+      $("composerTitle").textContent = signal.title || "Untitled signal";
+      $("composerMeta").textContent = `Urgency ${signal.urgency_score} · ${simpleLevelLabel(signal.technical_level)} · ${simpleUseCaseLabel(signal.use_case)}`;
+      $("composerContext").innerHTML = `
+        <div class="signal-card" style="margin-bottom:12px;">
+          <div class="signal-meta">
+            <div class="badge ${sourceClass(signal.source)}">${escapeHtml(sourceLabel(signal.source))}</div>
+            <div class="badge ${urgencyClass(signal.urgency_score)}">${escapeHtml(signal.urgency_label)} · ${signal.urgency_score}</div>
+          </div>
+          <div class="signal-title" style="font-size:15px;">${escapeHtml(signal.title || "")}</div>
+          <div class="signal-body expanded">${escapeHtml(clampText(signal.body || "", 220))}</div>
+          <div class="tag-row">
+            <span class="tag">Skill: ${escapeHtml(simpleLevelLabel(signal.technical_level || ""))}</span>
+            <span class="tag">Need: ${escapeHtml(simpleUseCaseLabel(signal.use_case || ""))}</span>
+          </div>
+        </div>`;
+
+      const analysis = signal.analysis || {};
+      const fields = [
+        ["What they need", analysis.what_they_are_struggling_with],
+        ["What they tried", analysis.what_they_probably_tried],
+        ["Next step", analysis.likely_next_step]
+      ];
+      $("composerAnalysis").innerHTML = fields.map(([label, value]) => `
+        <details class="analysis-item" open>
+          <summary>${escapeHtml(label)}</summary>
+          <p>${escapeHtml(value || "No detail available.")}</p>
+        </details>`).join("");
+
+      const drafts = state.composeData?.signal_id === signal.id ? state.composeData.drafts : null;
+      if (!drafts) {
+        $("composerTabs").innerHTML = "";
+        $("composerDrafts").innerHTML = `
+          <div class="empty-state">Drafts will load when you open the composer or click Regenerate.</div>`;
+        return;
+      }
+      renderComposeDrafts(drafts, "composerTabs", "composerDrafts", "compose");
+    }
+
+    function renderComposeDrafts(drafts, tabsId, panelId, scope) {
+      const activeTab = scope === "compose" ? state.composeTab : state.drawerTab;
+      const tabs = ["helpful", "direct"];
+      const tabEls = tabs.map((tab) => `
+        <button class="tab-btn ${activeTab === tab ? "active" : ""}" data-action="draft-tab" data-scope="${scope}" data-tab="${tab}">
+          ${tab === "helpful" ? "Helpful" : "Direct"}
+        </button>`).join("");
+      $(tabsId).innerHTML = tabEls;
+      const panel = tabs.map((tab) => {
+        const draft = drafts[tab] || {};
+        const isActive = activeTab === tab;
+        const tone = Number(draft.tone_value ?? 50);
+        const charCount = String(draft.character_count ?? (draft.text || "").length);
+        return `
+          <div class="draft-card ${isActive ? "" : "hidden"}" data-draft="${tab}">
+            <div class="draft-header">
+              <div>
+                <div class="badge info">${escapeHtml(draft.label || tab)}</div>
+              </div>
+              <button class="ghost-btn composer-copy" data-action="copy-text" data-scope="${scope}" data-tab="${tab}">Copy</button>
+            </div>
+            <textarea class="draft-textarea" data-action="draft-edit" data-scope="${scope}" data-tab="${tab}">${escapeHtml(draft.text || "")}</textarea>
+            <div class="slider-row" style="margin-top:10px;">
+              <label class="count">Gentle</label>
+              <input class="range" type="range" min="0" max="100" value="${tone}" data-action="tone-slider" data-scope="${scope}" data-tab="${tab}">
+              <label class="count">Direct</label>
+              <span class="count" data-role="char-count">${charCount} chars</span>
+            </div>
+          </div>`;
+      }).join("");
+      $(panelId).innerHTML = panel;
+    }
+
+    function renderDrawer() {
+      const drawer = $("composerDrawer");
+      const backdrop = $("drawerBackdrop");
+      const signal = selectedSignal();
+      const open = Boolean(state.drawerOpen && signal);
+      drawer.classList.toggle("open", open);
+      backdrop.classList.toggle("open", open);
+      drawer.setAttribute("aria-hidden", open ? "false" : "true");
+
+      if (!signal) {
+        $("drawerTitle").textContent = "Pick a signal";
+        $("drawerMeta").textContent = "The message draft opens here.";
+        $("drawerContext").innerHTML = `<div class="empty-state">Open a signal to write its message here.</div>`;
+        $("drawerTabs").innerHTML = "";
+        $("drawerDrafts").innerHTML = "";
+        return;
+      }
+
+      $("drawerSourceBadge").textContent = sourceLabel(signal.source);
+      $("drawerTitle").textContent = signal.title || "Signal";
+      $("drawerMeta").textContent = `Urgency ${signal.urgency_score} · ${simpleLevelLabel(signal.technical_level)}`;
+      $("drawerContext").innerHTML = `
+        <div class="drawer-panel" style="padding:0; border:0; background:transparent;">
+          <div class="badge ${sourceClass(signal.source)}">${escapeHtml(sourceLabel(signal.source))}</div>
+          <div style="margin-top:10px; font-size:15px; font-weight:800; letter-spacing:-.02em;">${escapeHtml(signal.title || "")}</div>
+          <div style="margin-top:8px; color:var(--gray); font-size:13px; line-height:1.6;">${escapeHtml(clampText(signal.body || "", 180))}</div>
+          <div class="tag-row" style="margin-top:12px;">
+            <span class="tag">Skill: ${escapeHtml(simpleLevelLabel(signal.technical_level || ""))}</span>
+            <span class="tag">Need: ${escapeHtml(simpleUseCaseLabel(signal.use_case || ""))}</span>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="field-label">Why it matters</div>
+            <div class="field-value">${escapeHtml(signal.analysis?.what_they_are_struggling_with || "No analysis available.")}</div>
+            <div class="field-label" style="margin-top:12px;">Simple next step</div>
+            <div class="field-value">${escapeHtml(signal.analysis?.likely_next_step || "No next step available.")}</div>
+          </div>
+        </div>`;
+
+      const drafts = state.composeData?.signal_id === signal.id ? state.composeData.drafts : null;
+      if (!drafts) {
+        $("drawerTabs").innerHTML = "";
+        $("drawerDrafts").innerHTML = `<div class="empty-state">Click Regenerate to build outreach drafts for this signal.</div>`;
+        return;
+      }
+      renderComposeDrafts(drafts, "drawerTabs", "drawerDrafts", "drawer");
+    }
+
+    function qualityPill(type, content) {
+      const text = String(content || "");
+      let level = "High";
+      let cls = "success";
+      if (text.length < 180) { level = "Medium"; cls = "medium"; }
+      if (type === "email") { level = "Strong"; cls = "info"; }
+      return `<span class="badge ${cls} content-quality">Likely reach: ${level}</span>`;
+    }
+
+    function renderContentModule() {
+      if (!hasSessionData()) {
+        $("contentGrid").innerHTML = "";
+        return;
+      }
+      const content = state.session?.content || {};
+      const mapping = [
+        ["linkedin_post", "LinkedIn Post", "LinkedIn", "A short post for sharing the idea.", "linkedin"],
+        ["blog_hook", "Blog Hook", "Dev.to", "A simple opening line for a blog post.", "hook"],
+        ["cold_email", "Intro Email", "Email", "A short note for a founder or team lead.", "email"]
+      ];
+      const html = mapping.map(([key, title, platform, subtitle, variant]) => {
+        const editable = state.contentEditable[key];
+        const draft = state.contentDrafts[key] ?? content[key] ?? "";
+        return `
+          <div class="content-card">
+            <div class="content-toolbar">
+              <div>
+                <div class="badge info">${escapeHtml(platform)}</div>
+                <div class="content-title">${escapeHtml(title)}</div>
+                <div class="panel-subtitle" style="margin-top:6px;">${escapeHtml(subtitle)}</div>
+              </div>
+              ${qualityPill(variant, draft)}
+            </div>
+            ${
+              editable
+                ? `<textarea class="content-textarea" data-key="${key}" oninput="updateContentDraft('${key}', this.value)">${escapeHtml(draft)}</textarea>`
+                : `<div class="field-value" style="white-space:pre-wrap; line-height:1.7; min-height:180px;">${escapeHtml(draft)}</div>`
+            }
+            <div class="content-actions">
+              <button class="toggle-btn" data-action="toggle-content" data-key="${key}">${editable ? "View" : "Edit"}</button>
+              <button class="secondary-btn" data-action="copy-content" data-key="${key}">Copy</button>
+              <button class="ghost-btn" data-action="regen-content" data-key="${key}">Regenerate</button>
+            </div>
+          </div>`;
+      }).join("");
+      $("contentGrid").innerHTML = html;
+    }
+
+    function renderInsightsModule() {
+      if (!hasSessionData()) {
+        $("insightMetrics").innerHTML = "";
+        $("insightsCharts").innerHTML = "";
+        $("insightsList").innerHTML = "";
+        return;
+      }
+      const metrics = state.session?.metrics || {};
+      const signals = state.session?.signals || [];
+      $("insightMetrics").innerHTML = [
+        metricCard("Signals Today", metrics.total_signals || 0, "Detected in this scan.", true),
+        metricCard("Top Source", metrics.most_active_source || "None", "Where most signals came from."),
+        metricCard("Main Need", simpleUseCaseLabel(metrics.top_use_case || "None"), "The most common problem.", true),
+        metricCard("Skill Level", simpleLevelLabel(metrics.average_developer_level || "None"), "How advanced the audience feels.")
+      ].join("");
+
+      $("insightsCharts").innerHTML = [
+        renderSourceChart(metrics.source_distribution || []),
+        renderUseCaseChart(metrics.use_case_distribution || []),
+        renderTrendChart(signals)
+      ].join("");
+
+      const observations = state.session?.insights?.length ? state.session.insights : insightsFallback;
+      $("insightsList").innerHTML = observations.map((observation) => `<div class="insight-item">${escapeHtml(simplifyText(observation))}</div>`).join("");
+      $("badge-insights").textContent = String(observations.length);
+      animateCountups($("insightMetrics"));
+    }
+
+    function renderAll() {
+      updateModuleVisibility();
+      updateSidebarBadges();
+      renderSignalStats();
+      renderSignalFeed();
+      renderSavedSignals();
+      renderComposerPanel();
+      renderContentModule();
+      renderInsightsModule();
+      renderDrawer();
+      updateLastScanText();
+    }
+
+    function updateContentDraft(key, value) {
+      state.contentDrafts[key] = value;
+    }
+
+    window.updateContentDraft = updateContentDraft;
+
+    function updateComposeDraft(scope, tab, value) {
+      const drafts = state.composeData?.drafts;
+      if (!drafts || !drafts[tab]) return;
+      drafts[tab].text = value;
+      drafts[tab].character_count = value.length;
+      const container = scope === "drawer" ? $("drawerDrafts") : $("composerDrafts");
+      const count = container?.querySelector(`.draft-card[data-draft="${tab}"] [data-role="char-count"]`);
+      if (count) count.textContent = `${value.length} chars`;
+    }
+
+    window.updateComposeDraft = updateComposeDraft;
+
+    async function requestJson(url, body = null) {
+      const options = body ? {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      } : {};
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed: ${response.status}`);
+      }
+      return data;
+    }
+
+    async function scanPipeline() {
+      clearError();
+      setLoading("scan", true);
+      state.lastScanAt = Date.now();
+      updateLastScanText();
+      try {
+        const data = await requestJson("/scan", {});
+        state.session = data;
+        const savedIds = loadSavedSignalIds();
+        state.session.signals = (state.session.signals || []).map((signal) => ({
+          ...signal,
+          saved: savedIds.has(String(signal.id)) || Boolean(signal.saved)
+        }));
+        state.session.saved_signals = state.session.signals.filter((signal) => signal.saved);
+        state.lastScanAt = Date.now();
+        state.contentDrafts = { ...data.content };
+        state.contentEditable = { linkedin_post: false, blog_hook: false, cold_email: false };
+        state.selectedSignalId = null;
+        state.composeData = null;
+        state.composeTab = "helpful";
+        state.drawerTab = "helpful";
+        state.contentAngle = "";
+        renderAll();
+        setActiveModule("signal");
+      } catch (error) {
+        showError(error.message || "Failed to run scan.", () => scanPipeline());
+      } finally {
+        setLoading("scan", false);
+        updateLastScanText();
+      }
+    }
+
+    async function openComposerForSelected(shouldOpenDrawer = true) {
+      const signal = selectedSignal();
+      if (!signal) return;
+      const analysis = signal.analysis || {};
+      setLoading("compose", true);
+      clearError();
+      try {
+        const data = await requestJson("/compose", {
+          signal,
+          analysis,
+          session: state.session
+        });
+        state.composeData = data;
+        state.composeTab = "helpful";
+        state.drawerTab = "helpful";
+        state.drawerOpen = shouldOpenDrawer;
+        renderAll();
+        if (shouldOpenDrawer) {
+          openDrawer();
+        } else {
+          closeDrawer();
+        }
+      } catch (error) {
+        showError(error.message || "Failed to generate outreach.", () => openComposerForSelected(shouldOpenDrawer));
+      } finally {
+        setLoading("compose", false);
+      }
+    }
+
+    async function refreshInsights() {
+      if (!state.session) return;
+      setLoading("insights", true);
+      clearError();
+      try {
+        const data = await requestJson("/insights", { session: state.session });
+        state.session.insights = data.observations || [];
+        renderAll();
+      } catch (error) {
+        showError(error.message || "Failed to refresh insights.", () => refreshInsights());
+      } finally {
+        setLoading("insights", false);
+      }
+    }
+
+    async function regenerateContent(angle = null) {
+      if (!state.session) return;
+      setLoading("content", true);
+      clearError();
+      try {
+        const data = await requestJson("/regenerate-content", {
+          session: state.session,
+          angle: angle || null
+        });
+        state.session.content = data;
+        state.contentDrafts = { ...data };
+        state.contentEditable = { linkedin_post: false, blog_hook: false, cold_email: false };
+        state.contentAngle = angle || "";
+        renderAll();
+      } catch (error) {
+        showError(error.message || "Failed to regenerate content.", () => regenerateContent(angle));
+      } finally {
+        setLoading("content", false);
+      }
+    }
+
+    function updateContentFromSession() {
+      state.contentDrafts = { ...(state.session?.content || {}) };
+    }
+
+    function toggleSignalSave(id) {
+      if (!state.session) return;
+      const signal = state.session.signals.find((item) => String(item.id) === String(id));
+      if (!signal) return;
+      signal.saved = !signal.saved;
+      state.session.saved_signals = state.session.signals.filter((item) => item.saved);
+      const savedIds = new Set(state.session.saved_signals.map((item) => String(item.id)));
+      persistSavedSignalIds(savedIds);
+      renderAll();
+    }
+
+    function handleCopyButton(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="copy-state">✓ Copied</span>`;
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }, 1100);
+      });
+    }
+
+    function handleComposeAction(id) {
+      const signal = state.session?.signals.find((item) => String(item.id) === String(id));
+      if (!signal) return;
+      state.selectedSignalId = signal.id;
+      state.composeData = null;
+      setActiveModule("compose");
+      openComposerForSelected(true);
+    }
+
+    function openDrawer() {
+      state.drawerOpen = true;
+      $("drawerBackdrop").classList.add("open");
+      $("composerDrawer").classList.add("open");
+    }
+
+    function closeDrawer() {
+      state.drawerOpen = false;
+      $("drawerBackdrop").classList.remove("open");
+      $("composerDrawer").classList.remove("open");
+    }
+
+    document.addEventListener("click", async (event) => {
+      const target = event.target.closest("[data-action]");
+      if (target) {
+        const action = target.dataset.action;
+        const id = target.dataset.id;
+        const key = target.dataset.key;
+        const tab = target.dataset.tab;
+        const scope = target.dataset.scope;
+        if (action === "compose") {
+          handleComposeAction(id);
+        } else if (action === "select-signal") {
+          handleComposeAction(id);
+        } else if (action === "save") {
+          toggleSignalSave(id);
+        } else if (action === "copy-content") {
+          handleCopyButton(target, state.contentDrafts[key] ?? state.session?.content?.[key] ?? "");
+        } else if (action === "toggle-content") {
+          state.contentEditable[key] = !state.contentEditable[key];
+          renderContentModule();
+        } else if (action === "regen-content") {
+          await regenerateContent(state.contentAngle || null);
+        } else if (action === "draft-tab") {
+          if (scope === "compose") state.composeTab = tab;
+          if (scope === "drawer") state.drawerTab = tab;
+          renderComposerPanel();
+          renderDrawer();
+        } else if (action === "copy-text") {
+          const signal = selectedSignal();
+          const drafts = state.composeData?.signal_id === signal?.id ? state.composeData.drafts : null;
+          const text = drafts?.[tab]?.text || "";
+          handleCopyButton(target, text);
+        }
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      const target = event.target;
+      if (target.matches(".content-textarea")) {
+        const key = target.dataset.key;
+        if (key) updateContentDraft(key, target.value);
+      }
+      if (target.matches(".draft-textarea")) {
+        const scope = target.dataset.scope;
+        const tab = target.dataset.tab;
+        updateComposeDraft(scope, tab, target.value);
+      }
+      if (target.matches(".range")) {
+        const scope = target.dataset.scope;
+        const tab = target.dataset.tab;
+        const drafts = state.composeData?.drafts;
+        if (drafts && drafts[tab]) {
+          drafts[tab].tone_value = Number(target.value);
+        }
+      }
+    });
+
+    document.addEventListener("change", (event) => {
+      const target = event.target;
+      if (target.id === "sourceFilter") {
+        state.filters.source = target.value;
+        renderSignalStats();
+        renderSignalFeed();
+      }
+      if (target.id === "levelFilter") {
+        state.filters.level = target.value;
+        renderSignalStats();
+        renderSignalFeed();
+      }
+      if (target.id === "urgencyFilter") {
+        state.filters.urgency = target.value;
+        renderSignalStats();
+        renderSignalFeed();
+      }
+    });
+
+    $("sidebarNav").addEventListener("click", (event) => {
+      const btn = event.target.closest(".nav-item");
+      if (!btn) return;
+      setActiveModule(btn.dataset.module);
+    });
+
+    $("scanBtn").addEventListener("click", scanPipeline);
+    $("heroScanBtn").addEventListener("click", scanPipeline);
+    $("refreshComposeBtn").addEventListener("click", () => openComposerForSelected(true));
+    $("drawerOpenBtn").addEventListener("click", openDrawer);
+    $("drawerBackdrop").addEventListener("click", closeDrawer);
+    $("closeDrawerBtn").addEventListener("click", closeDrawer);
+    $("composerRegenerateBtn").addEventListener("click", () => openComposerForSelected(true));
+    $("spinGenerateBtn").addEventListener("click", async () => {
+      const angle = $("spinAngle").value.trim();
+      await regenerateContent(angle || null);
+    });
+    $("refreshInsightsBtn").addEventListener("click", refreshInsights);
+    $("exportBtn").addEventListener("click", () => {
+      window.location.href = "/export";
+    });
+    $("retryBtn").addEventListener("click", () => {
+      if (state.errorRetry) state.errorRetry();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDrawer();
+      if ((event.key === "Enter" || event.key === " ") && document.activeElement?.matches?.(".signal-card[data-action='select-signal']")) {
+        event.preventDefault();
+        const id = document.activeElement.dataset.id;
+        if (id) handleComposeAction(id);
+      }
+    });
+
+    function tick() {
+      updateLastScanText();
+    }
+
+    async function bootstrap() {
+      renderAll();
+      setInterval(tick, 1000);
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
