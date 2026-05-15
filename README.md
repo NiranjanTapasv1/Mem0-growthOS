@@ -1,88 +1,77 @@
 # Mem0 GrowthOS
 
-Mem0 GrowthOS is a Flask dashboard for turning Mem0's developer pain-point pipeline into a simple internal growth tool.
+A growth intelligence platform built for Mem0's GTM team. It finds developers hitting the AI memory wall in real time and helps the team reach them with the right message before they build something custom and move on.
 
-The app scans for real AI memory pain points, groups them into signal cards, helps draft outreach, creates reusable content, and shows a short set of session insights. It is designed to feel like a small SaaS product the growth team could actually use, not a demo.
+Live Demo: https://mem0-growthos.onrender.com
 
-## What It Does
+---
 
-The workflow is intentionally simple:
+## The Problem This Solves
 
-1. Open the app and start on a quiet landing state.
-2. Click `Scan Now`.
-3. The backend runs the agent pipeline from `main.py`.
-4. The dashboard fills with:
-   - `Signal Radar`: discovered pain points
-   - `Outreach Composer`: a plain-language message for one selected signal
-   - `Content Command`: LinkedIn, blog hook, and intro email drafts
-   - `Insights`: charts and short observations from the current scan
-5. Save signals, edit drafts, regenerate content, and export the latest markdown output.
+Mem0 fixes one of the most frustrating problems in AI development. Every AI app built today forgets everything the moment a conversation ends. Mem0 solves that with three lines of code.
 
-The UI stays static until a scan runs. After that, the session state lives in the browser and the backend keeps the latest export in `outputs.md`.
+But here is the catch. Thousands of developers are hitting this exact wall every single day on Reddit, GitHub and Stack Overflow. Most of them have never heard of Mem0. They spend days building their own memory systems from scratch, get frustrated, and move on.
 
-## Stack
+This tool is built to reach those developers before that happens.
 
-- Backend: Flask in `app.py`
-- Pipeline logic: `main.py`
-- Frontend: single HTML file in `templates/index.html`
-- Styling and behavior: vanilla CSS and JavaScript only
-- Typography: Inter from Google Fonts
-- LLM: Gemini via the Google SDK used in `main.py`
+---
 
-## Routes
+## How It Works
 
-- `GET /` serves the dashboard
-- `POST /scan` runs the full pipeline and returns the full session as JSON
-- `POST /run` is a compatibility alias for `/scan`
-- `POST /compose` creates outreach drafts for one selected signal
-- `POST /regenerate-content` rewrites the content assets, optionally with a focus angle
-- `POST /insights` regenerates the strategic observations for the current session
-- `GET /export` downloads `outputs.md`
-- `GET /run-stream` is a compatibility SSE endpoint for older clients
+Open the app, click Scan Now, and the platform fills up with everything the team needs for the day.
 
-## Project Files
+**Signal Radar** shows developer pain points scored by urgency. The most critical ones are flagged so the team knows exactly who to reach out to first.
 
-- `main.py`: the agent pipeline and Gemini helper functions
-- `app.py`: Flask app and session/export routes
-- `templates/index.html`: the full dashboard UI
-- `outputs.md`: latest generated session export
-- `.env`: stores `GEMINI_API_KEY`
+**Outreach Composer** generates three personalized response drafts for each signal, in helpful, technical and direct tones. The system reads what the developer actually said, figures out which specific problem they are facing, and picks the argument that fits. It does not generate generic responses.
 
-## Run Locally
+**Content Command** produces a LinkedIn post, a Hacker News blog hook and a cold email to a startup CTO, all ready to use or edit. The team can regenerate any of them with a custom angle in one click.
 
-1. Add your API key to `.env`:
+**Insights** shows which failure modes are showing up most, which sources are most active and where the biggest gaps in current outreach are.
+
+---
+
+## Run It Yourself
+
+Clone the repo and install dependencies:
 
 ```bash
-GEMINI_API_KEY=your_key_here
-```
-
-2. Install dependencies:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/NiranjanTapasv1/Mem0-growthOS.git
+cd Mem0-growthOS
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Start the app:
+Add your Gemini API key to a .env file:
+
+```
+GEMINI_API_KEY=your_key_here
+```
+
+Get a free key at aistudio.google.com, no credit card needed.
+
+Start the app:
 
 ```bash
 python app.py
 ```
 
-Open the URL printed in the terminal. The app tries `http://localhost:5000` first and falls back to the next free port if needed.
+Open http://localhost:5000 and click Scan Now.
 
-## How the UI Works
+---
 
-- The left sidebar switches between the four modules.
-- Signal cards are clickable and open the composer.
-- Save state is remembered in the browser for the session.
-- Draft text can be edited directly in the dashboard.
-- Copy buttons copy the current message or content block to the clipboard.
-- Charts in `Insights` are rendered with SVG and pure CSS styling.
+## Stack
 
-## Notes
+Python and Flask on the backend. Vanilla HTML, CSS and JavaScript on the frontend. Google Gemini 2.0 Flash as the AI model. Deployed on Render.
 
-- `app.py` imports the pipeline functions from `main.py`, so the core logic stays in one place.
-- The latest session is persisted to `outputs.md` whenever the scan or export path runs.
-- The app has fallback paths so the dashboard can still render even if the Gemini call fails or quota is exhausted.
+---
+
+## What Is Next
+
+Right now the signals are AI generated simulations. The next version plugs in live Reddit scraping via PRAW and the GitHub Issues API so the feed pulls from real developer conversations happening today. After that, a feedback loop where the team marks responses as posted or ignored so the system learns what actually converts over time.
+
+---
+
+Built by Niranjan Tapasvi for the Basis Set Ventures AI Fellowship 2026
+
+© 2026 Niranjan Tapasvi. All rights reserved.
